@@ -1,0 +1,189 @@
+/// FUNCTION IMPLEMENTATION
+//------------------------------------------------------------------------------//
+/// 1. pNode Structure: Populate Node Function
+//------------------------------------------------------------------------------//
+void pNode::PopulateNode(string pT, float pW, float pS, float pO)
+{
+    pTest = pT;
+    pWeight = pW;
+    pSpeed = pS;
+    pOffset = pO;
+}
+
+//------------------------------------------------------------------------------//
+/// 2. pNode Structure: Projectile Distance Function
+//------------------------------------------------------------------------------//
+float pNode::ProjectileDistance()
+{
+    // Approximation for Earth's curvature adjustment
+    float curvatureCompensation = 1.0 + (pWeight / (EARTH_RADIUS * 100.0));
+    // Formula: Range = (initialSpeed^2 / GRAVITY) * sin(2 * angle)
+    // Assume 45-degree angle for maximum range (sin(90 degrees) = 1) and no air resistance or other factors
+    float range = ( (pSpeed * pSpeed) / GRAVITY) * curvatureCompensation;
+    // Applying offset for the specific projectile design and return
+    return range * pOffset;
+}
+
+//------------------------------------------------------------------------------//
+/// 3. Read Text File and Populate LL Function
+//------------------------------------------------------------------------------//
+void ReadFileAndPopulate(string FileName, pNode **sPtr)
+{
+    ifstream File;
+
+    string Test;
+    float Weight;
+    float Speed;
+    float Offset;
+
+    //Check Memory Before
+    if (*sPtr != nullptr)
+        DeleteAllNodes(sPtr);
+
+    File.open(FileName);
+    while ( !File.eof() ) //end of file
+    {
+        File >> Test;
+        File >> Weight;
+        File >> Speed;
+        File >> Offset;
+
+        InsertNode(sPtr, Test, Weight, Speed, Offset);
+    }
+    File.close();
+}
+
+//------------------------------------------------------------------------------//
+/// 4. Insert New Node Into LL Function
+//------------------------------------------------------------------------------//
+void InsertNode(pNode **sPtr, string Test, float Weight, float Speed, float Offset)
+{
+    pNode *newNode = new pNode;
+    if (newNode == nullptr)
+        return;
+
+    newNode->PopulateNode(Test,Weight, Speed, Offset);
+    newNode->nextPtr = nullptr;
+
+    if (*sPtr == nullptr)
+        *sPtr = newNode;
+    else
+    {
+        pNode *currentPtr = *sPtr;
+        while (currentPtr->nextPtr != nullptr)
+            currentPtr = currentPtr->nextPtr;
+        currentPtr->nextPtr = newNode;
+    }
+}
+
+//------------------------------------------------------------------------------//
+/// 5. Display Data Table Function
+//------------------------------------------------------------------------------//
+void DisplayDataTable(pNode *sPtr)
+{
+    pNode *currentPtr = sPtr;
+
+    cout << "-----------------------------------------------------------------------" << endl;
+    cout << left << setw(20) << "Test";
+    cout << left << setw(20) << "Weight";
+    cout << left << setw(20) << "Speed";
+    cout << left << setw(20) << "Offset";
+    cout << endl;
+    cout << "-----------------------------------------------------------------------" << endl;
+
+    while (currentPtr != nullptr)
+    {
+        cout << left << setw(20) << currentPtr->pTest;
+        cout << left << setw(20) << currentPtr->pWeight;
+        cout << left << setw(20) << currentPtr->pSpeed;
+        cout << left << setw(20) << currentPtr->pOffset;
+        cout << endl;
+        currentPtr = currentPtr->nextPtr;
+    }
+    cout << "-----------------------------------------------------------------------" << endl;
+}
+
+//------------------------------------------------------------------------------//
+/// 6. Display Distance Deviation Table Function
+//------------------------------------------------------------------------------//
+void DisplayDistanceDeviationTable(pNode *sPtr)
+{
+    pNode *currentPtr = sPtr;
+    float AvgLL = 0;
+    int countLL = 0;
+
+    while (currentPtr != nullptr)
+    {
+        AvgLL = AvgLL + currentPtr->ProjectileDistance();
+        countLL++;
+        currentPtr = currentPtr->nextPtr;
+    }
+    AvgLL = AvgLL / countLL;
+
+    cout << "-----------------------------------------------------------------------" << endl;
+    cout << left << setw(20) << "Test";
+    cout << left << setw(20) << "Distance";
+    cout << left << setw(20) << "Deviation";
+    cout << endl;
+    cout << "-----------------------------------------------------------------------" << endl;
+
+    currentPtr = sPtr;
+    while (currentPtr != nullptr)
+    {
+        cout << left << setw(20) << currentPtr->pTest;
+        cout << left << setw(20) << currentPtr->ProjectileDistance();
+        cout << left << setw(20) << currentPtr->ProjectileDistance() - AvgLL;
+        cout << endl;
+        currentPtr = currentPtr->nextPtr;
+    }
+    cout << "-----------------------------------------------------------------------" << endl;
+}
+
+//------------------------------------------------------------------------------//
+/// 7. Display Node Distance Graph Function
+//------------------------------------------------------------------------------//
+void DisplayNodeDistanceGraph(pNode *sPtr)
+{
+    pNode *currentPtr = sPtr;
+    int pDist;
+
+    cout << "-----------------------------------------------------------------------" << endl;
+    cout << left << setw(20) << "Test";
+    cout << left << setw(20) << "| 10 meter per star";
+    cout << endl;
+    cout << "-----------------------------------------------------------------------" << endl;
+
+    currentPtr = sPtr;
+    while (currentPtr != nullptr)
+    {
+        cout << left << setw(20) << currentPtr->pTest;
+        cout << "| ";
+        pDist = (int)( currentPtr->ProjectileDistance() ) / 10;
+        for (int i = 0; i < pDist; i++)
+        {
+            cout << "*";
+        }
+        cout << endl;
+        currentPtr = currentPtr->nextPtr;
+    }
+    cout << "-----------------------------------------------------------------------" << endl;
+
+}
+
+//------------------------------------------------------------------------------//
+/// 8. Delete All Nodes Function
+//------------------------------------------------------------------------------//
+void DeleteAllNodes (pNode **sPtr)
+{
+    pNode *currentPtr = *sPtr;
+    pNode *deletePtr;
+
+    while (currentPtr != nullptr)
+    {
+        deletePtr = currentPtr;
+        currentPtr = currentPtr->nextPtr;
+        delete deletePtr;
+    }
+
+    *sPtr = nullptr;
+}

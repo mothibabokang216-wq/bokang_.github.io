@@ -1,0 +1,151 @@
+
+void aNode::PopulateNode(string aN, string e, float s, float aF)
+{
+    aName = aN;
+    event = e;
+    score = s;
+    adjFactor = aF;
+}
+
+//------------------------------------------------------------------------------//
+// 2. Calculate Adjusted Score Function
+//------------------------------------------------------------------------------//
+
+float aNode::AdjustedScore()
+{
+    return score * adjFactor;
+}
+
+//------------------------------------------------------------------------------//
+// 3. Read File and Populate Function
+//------------------------------------------------------------------------------//
+
+void ReadFileAndPopulate(string FileName, aNode **sPtr)
+{
+    ifstream File;
+    string aName, event;
+    float score, adjFactor;
+
+    if (*sPtr != nullptr)
+        DeleteAllNodes(sPtr);
+
+    File.open(FileName);
+    while (!File.eof())
+    {
+        File >> aName >> event >> score >> adjFactor;
+        InsertNode(sPtr, aName, event, score, adjFactor);
+    }
+    File.close();
+}
+
+//------------------------------------------------------------------------------//
+// 4. Insert Node Function
+//------------------------------------------------------------------------------//
+
+void InsertNode(aNode **sPtr, string aName, string event, float score, float adjFactor)
+{
+    aNode *newNode = new aNode;
+    if (newNode == nullptr)
+        return;
+
+    newNode->PopulateNode(aName, event, score, adjFactor);
+    newNode->nextPtr = nullptr;
+
+    if (*sPtr == nullptr)
+        *sPtr = newNode;
+    else
+    {
+        aNode *currentPtr = *sPtr;
+        while (currentPtr->nextPtr != nullptr)
+            currentPtr = currentPtr->nextPtr;
+        currentPtr->nextPtr = newNode;
+    }
+}
+
+//------------------------------------------------------------------------------//
+// 5. Display Data Table Function
+//------------------------------------------------------------------------------//
+
+void DisplayDataTable(aNode *sPtr)
+{
+    aNode *currentPtr = sPtr;
+    cout << left << setw(20) << "Name" << setw(20) << "Event" << setw(15) << "Score" << setw(15) << "Adj. Factor" << endl;
+    cout << string(70, '-') << endl;
+
+    while (currentPtr != nullptr)
+    {
+        cout << left << setw(20) << currentPtr->aName << setw(20) << currentPtr->event << setw(15) << currentPtr->score << setw(15) << currentPtr->adjFactor << endl;
+        currentPtr = currentPtr->nextPtr;
+    }
+}
+
+//------------------------------------------------------------------------------//
+// 6. Display Score and Deviation Table Function
+//------------------------------------------------------------------------------//
+
+void DisplayScoreDeviationTable(aNode *sPtr)
+{
+    aNode *currentPtr = sPtr;
+    float total = 0;
+    int count = 0;
+
+    while (currentPtr != nullptr)
+    {
+        total += currentPtr->AdjustedScore();
+        count++;
+        currentPtr = currentPtr->nextPtr;
+    }
+    float avg = total / count;
+
+    cout << left << setw(20) << "Name" << setw(20) << "Adj. Score" << setw(20) << "Deviation" << endl;
+    cout << string(60, '-') << endl;
+
+    currentPtr = sPtr;
+    while (currentPtr != nullptr)
+    {
+        float score = currentPtr->AdjustedScore();
+        cout << left << setw(20) << currentPtr->aName << setw(20) << score << setw(20) << (score - avg) << endl;
+        currentPtr = currentPtr->nextPtr;
+    }
+}
+
+//------------------------------------------------------------------------------//
+// 7. Display Performance Graph Function
+//------------------------------------------------------------------------------//
+
+void DisplayPerformanceGraph(aNode *sPtr)
+{
+    aNode *currentPtr = sPtr;
+    int bar;
+
+    cout << left << setw(20) << "Name" << "| Graph (5 pts/star)" << endl;
+    cout << string(50, '-') << endl;
+
+    while (currentPtr != nullptr)
+    {
+        cout << left << setw(20) << currentPtr->aName << "| ";
+        bar = (int)(currentPtr->AdjustedScore()) / 5;
+        for (int i = 0; i < bar; i++)
+            cout << "*";
+        cout << endl;
+        currentPtr = currentPtr->nextPtr;
+    }
+}
+
+//------------------------------------------------------------------------------//
+// 8. Delete All Nodes Function
+//------------------------------------------------------------------------------//
+
+void DeleteAllNodes(aNode **sPtr)
+{
+    aNode *currentPtr = *sPtr;
+    aNode *deletePtr;
+
+    while (currentPtr != nullptr)
+    {
+        deletePtr = currentPtr;
+        currentPtr = currentPtr->nextPtr;
+        delete deletePtr;
+    }
+    *sPtr = nullptr;
+}
